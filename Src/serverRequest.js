@@ -1,4 +1,5 @@
 const dbPath = "../Src/jsonFiles/"; //путь до JSON файлов относительно index.html
+let place = document.getElementById("dataField");
 
 const makeMap = (object) => {
     return (new Map(Object.entries(object)))
@@ -7,26 +8,89 @@ const makeMap = (object) => {
 const makeLabel = (value) => {
     //оздать блок <label>
     return (
-       `<div><label>${value}</label></div>`
+        `<div><label>${value}</label></div>`
     )
 };
 
 const makeInput = (value) => {
     //оздать блок <input>
-    return (
-        `<input type=${value.type}/>`
-    )
+    let type = value.type ? value.type : null;
+    let isRequired = value.required ? value.required : false;
+    let placeholder = value.placeholder ? value.placeholder : "";
+    let mask = value.mask ? value.mask : null;
+    let accept = value.filetype ? value.filetype : "";
+    let technologies = value.technologies ? value.technologies : "";
+    let multiple = value.multiple ? value.multiple : false;
+    let isChecked = value.checked ? value.checked : "";
+
+    const getRegularInput = (type, isRequired, placeholder) => {
+        return (`<div><input type=${type} required=${isRequired} placeholder=${placeholder} ></input></div>`)
+    };
+
+    const getSelectInput = (optionList, isRequired, isMultiple) => {
+        return (
+            `<div>
+                <select required=${isRequired} multiple=${isMultiple}>
+                    ${optionList.forEach((option) => {
+                    return (`<option>${option}</option>`)
+                })}
+                </select>
+            </div>`
+        )
+    };
+
+    const getCheckbox = (isCheked) => {
+        return (`<div><input type=${type} checked=${isCheked} ></input></div>`)
+    }
+
+
+    switch (type) {
+        case "text":
+        case "email":
+        case "password":
+        case "file":
+        case "textarea":
+        case "date":
+        case "color":
+            return getRegularInput(type, isRequired, placeholder);
+        case "number":
+            if (mask) return getRegularInput("tel", isRequired, mask);
+            return getRegularInput(type, isRequired, placeholder);
+        case "technology":
+            return getSelectInput(technologies, isRequired, multiple);
+        case "checkbox":
+            return getCheckbox(isChecked);
+    }
 };
 
 function openDB(fileName) {
+
+    //очистка от старой формы
+    let place = document.getElementById("form");
+    if (place) {
+        place.remove()
+    }
+
+    let form = document.createElement("form");
+    form.id = "form";
+    document.body.append(form);
+
+    place = document.getElementById("form");
+
     // открыть JSON файл с именени fileName
+
     const url = dbPath + fileName;
     doGetRequest(url)
         .then((data) => {
             data.fields.forEach(field => {
-                makeMap(field).forEach((value,key) => {
-                    if (key === "label") {document.body.insertAdjacentHTML("beforeend", makeLabel(value))}
-                    if (key === "input") {document.body.insertAdjacentHTML("beforeend", makeInput(value))}
+                makeMap(field).forEach((value, key) => {
+
+                    if (key === "label") {
+                        place.insertAdjacentHTML("beforeend", makeLabel(value))
+                    }
+                    if (key === "input") {
+                        place.insertAdjacentHTML("beforeend", makeInput(value))
+                    }
                 })
             })
         })
