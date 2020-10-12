@@ -4,7 +4,6 @@ let place = document.getElementById("dataField");
 const makeMap = (object) => {
     return (new Map(Object.entries(object)))
 };
-
 const getPattern = (mask) => {
     let pattern = "";
     for (let i = 0; i < mask.length; i++) {
@@ -17,17 +16,16 @@ const makeLabel = (value) => {
     // блок <label>
 
     let newLabel = document.createElement("label"); //создадим блок
-    let newDiv = document.createElement("div"); // создадим контейнер блока
+
 
     // настроим блок
     newLabel.innerHTML = value;
 
     // вставим блок в DOM
     let place = document.getElementById("form");
-    place.appendChild(newDiv);
-    newDiv.appendChild(newLabel);
-};
 
+    place.appendChild(newLabel);
+};
 const makeInput = (value) => {
     // блок <input>
     let type = value.type ? value.type : undefined;
@@ -41,12 +39,12 @@ const makeInput = (value) => {
     //      case "999-999": pattern = "[0-9]{3}-[0-9]{3}"; break;
     //
     // }
-    let accept = value.filetype ? value.filetype : "";
+    let fileType = value.filetype ? "." + value.filetype.join(", .") : "";
     let technologies = value.technologies ? value.technologies : "";
-    let multiple = value.multiple ? value.multiple : false;
+    let isMultiple = value.multiple ? value.multiple : false;
     let isChecked = value.checked ? value.checked : false;
 
-    const getRegularInput = (type, isRequired, placeholder) => {
+    const makeRegularInput = (type, isRequired, placeholder) => {
         //простой блок Input
 
         let newInput = document.createElement("input"); //создадим блок
@@ -57,14 +55,15 @@ const makeInput = (value) => {
         newInput.required = isRequired;
         newInput.placeholder = placeholder;
         newInput.pattern = pattern;
+        newInput.accept = fileType;
+        newInput.multiple = isMultiple;
 
         // вставим блок в DOM
         let place = document.getElementById("form"); // вставим блок в DOM
         place.appendChild(newDiv);
         newDiv.appendChild(newInput);
     };
-
-    const getSelectInput = (optionList, isRequired, isMultiple) => {
+    const makeSelectInput = (optionList, isRequired, isMultiple) => {
         // Блок <select>
 
         let newSelect = document.createElement("select"); //создадим блок
@@ -88,12 +87,10 @@ const makeInput = (value) => {
             newSelect.appendChild(newOption);
         });
     };
-
-    const getCheckInput = (type, isChecked) => {
+    const makeCheckInput = (type, isChecked) => {
         //простой блок Input
 
         let newInput = document.createElement("input"); //создадим блок
-        let newDiv = document.createElement("div"); // создадим контейнер блока
 
         // настроим блок
         newInput.type = type;
@@ -101,8 +98,8 @@ const makeInput = (value) => {
 
         // вставим блок в DOM
         let place = document.getElementById("form"); // вставим блок в DOM
-        place.appendChild(newDiv);
-        newDiv.appendChild(newInput);
+
+        place.appendChild(newInput);
     };
 
     switch (type) {
@@ -113,18 +110,44 @@ const makeInput = (value) => {
         case "textarea":
         case "date":
         case "color":
-            return getRegularInput(type, isRequired, placeholder);
+            return makeRegularInput(type, isRequired, placeholder);
         case "number":
-            if (mask) return getRegularInput("tel", isRequired, mask);
-            return getRegularInput(type, isRequired, placeholder);
+            if (mask) return makeRegularInput("tel", isRequired, mask);
+            return makeRegularInput(type, isRequired, placeholder);
         case "technology":
-            return getSelectInput(technologies, isRequired, multiple);
+            return makeSelectInput(technologies, isRequired, isMultiple);
         case "checkbox":
-            return getCheckInput(type, isChecked)
+            return makeCheckInput(type, isChecked)
     }
 };
+const makeButton = (value) => {
+    //простой блок Button
 
-function openDB(fileName) {
+    let newButton = document.createElement("button"); //создадим блок
+
+    // настроим блок
+    newButton.innerText = value;
+
+    // вставим блок в DOM
+    let place = document.getElementById("form"); // вставим блок в DOM
+
+    place.appendChild(newButton);
+};
+
+const createField = (key, value) => {
+    switch (key) {
+        case "label":
+            makeLabel(value);
+            break;
+        case "input":
+            makeInput(value);
+            break;
+    }
+};
+const createButton = (key, value) => {
+    makeButton (value)
+};
+const createForm = (data) => {
 
     //очистка от старой формы
     let place = document.getElementById("form");
@@ -134,22 +157,29 @@ function openDB(fileName) {
 
     let form = document.createElement("form");
     form.id = "form";
+    form.name = "data.name";
     document.body.append(form);
 
-    place = document.getElementById("form");
+    data.fields.forEach((field) => {
+        makeMap(field).forEach((value, key, map) => {
+            createField(key, value)
+        })
+    })
 
+    data.buttons.forEach((field) => {
+        makeMap(field).forEach((value, key, map) => {
+            createButton(key, value)
+        })
+    })
+};
+
+function openDB(fileName) {
     // открыть JSON файл с именени fileName
-
     const url = dbPath + fileName;
     doGetRequest(url)
         .then((data) => {
-            console.log(data);
-            data.fields.forEach(field => {
-                makeLabel(field.label);
-                makeInput(field.input);
-                })
-            })
-
+            createForm(data)
+        })
         .catch((error) => {
             console.log(error.message)
         })
@@ -164,12 +194,10 @@ function checkResponseStatus(response) {
         return Promise.reject(new Error(`Ошибка ${response.status}: ${response.statusText}`))
     }
 }
-
 function getJsonObject(response) {
     // получение JSON-объекта
     return response.json()
 }
-
 async function doGetRequest(url) {
     // GET-запрос
     return (
@@ -178,7 +206,6 @@ async function doGetRequest(url) {
             .then(getJsonObject) //если проверка прошла успешно - получаем JSON-объект ответа
     )
 }
-
 async function doPatchRequest(url, data) {
     // PATCH-запрос
     return (
@@ -193,7 +220,6 @@ async function doPatchRequest(url, data) {
             .then(getJsonObject)
     )
 }
-
 async function doPostRequest(url, data) {
     // POST-запрос
     return (
@@ -208,7 +234,6 @@ async function doPostRequest(url, data) {
             .then(getJsonObject)
     )
 }
-
 async function doDeleteRequest(url, item) {
     // DELETE-запрос
     return (
