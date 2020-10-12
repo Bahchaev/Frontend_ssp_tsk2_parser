@@ -5,44 +5,105 @@ const makeMap = (object) => {
     return (new Map(Object.entries(object)))
 };
 
+const getPattern = (mask) => {
+    let pattern = "";
+    for (let i = 0; i < mask.length; i++) {
+        pattern = (mask[i] === "9") ? pattern + "[0-9]{1}" : pattern + mask[i]
+    }
+    return pattern
+};
+
 const makeLabel = (value) => {
-    //оздать блок <label>
-    return (
-        `<div><label>${value}</label></div>`
-    )
+    // блок <label>
+
+    let newLabel = document.createElement("label"); //создадим блок
+    let newDiv = document.createElement("div"); // создадим контейнер блока
+
+    // настроим блок
+    newLabel.innerHTML = value;
+
+    // вставим блок в DOM
+    let place = document.getElementById("form");
+    place.appendChild(newDiv);
+    newDiv.appendChild(newLabel);
 };
 
 const makeInput = (value) => {
-    //оздать блок <input>
-    let type = value.type ? value.type : null;
+    // блок <input>
+    let type = value.type ? value.type : undefined;
     let isRequired = value.required ? value.required : false;
     let placeholder = value.placeholder ? value.placeholder : "";
-    let mask = value.mask ? value.mask : null;
+    let mask = value.mask ? value.mask : undefined;
+    let pattern = mask ? getPattern(mask) : undefined;
+    // switch (mask) {
+    //      case "+7 (999) 99-99-999": pattern = "+7 ([0-9]{3}) [0-9]{2}-[0-9]{2}-[0-9]{3}"; break;
+    //      case "99-99 999999": pattern = "[0-9]{2}-[0-9]{2} [0-9]{6}"; break;
+    //      case "999-999": pattern = "[0-9]{3}-[0-9]{3}"; break;
+    //
+    // }
     let accept = value.filetype ? value.filetype : "";
     let technologies = value.technologies ? value.technologies : "";
     let multiple = value.multiple ? value.multiple : false;
-    let isChecked = value.checked ? value.checked : "";
+    let isChecked = value.checked ? value.checked : false;
 
     const getRegularInput = (type, isRequired, placeholder) => {
-        return (`<div><input type=${type} required=${isRequired} placeholder=${placeholder} ></input></div>`)
+        //простой блок Input
+
+        let newInput = document.createElement("input"); //создадим блок
+        let newDiv = document.createElement("div"); // создадим контейнер блока
+
+        // настроим блок
+        newInput.type = type;
+        newInput.required = isRequired;
+        newInput.placeholder = placeholder;
+        newInput.pattern = pattern;
+
+        // вставим блок в DOM
+        let place = document.getElementById("form"); // вставим блок в DOM
+        place.appendChild(newDiv);
+        newDiv.appendChild(newInput);
     };
 
     const getSelectInput = (optionList, isRequired, isMultiple) => {
-        return (
-            `<div>
-                <select required=${isRequired} multiple=${isMultiple}>
-                    ${optionList.forEach((option) => {
-                    return (`<option>${option}</option>`)
-                })}
-                </select>
-            </div>`
-        )
+        // Блок <select>
+
+        let newSelect = document.createElement("select"); //создадим блок
+        let newDiv = document.createElement("div"); // создадим контейнер блока
+
+        // настроим блок
+        newSelect.required = isRequired;
+        newSelect.multiple = isMultiple;
+
+
+        // вставим блок в DOM
+        let place = document.getElementById("form"); // вставим блок в DOM
+        place.appendChild(newDiv);
+        newDiv.appendChild(newSelect);
+
+        // вставим варианты выбора <option> в <select>
+        let newOption = null;
+        optionList.forEach((option) => {
+            newOption = document.createElement("option");
+            newOption.innerHTML = option;
+            newSelect.appendChild(newOption);
+        });
     };
 
-    const getCheckbox = (isCheked) => {
-        return (`<div><input type=${type} checked=${isCheked} ></input></div>`)
-    }
+    const getCheckInput = (type, isChecked) => {
+        //простой блок Input
 
+        let newInput = document.createElement("input"); //создадим блок
+        let newDiv = document.createElement("div"); // создадим контейнер блока
+
+        // настроим блок
+        newInput.type = type;
+        newInput.checked = isChecked;
+
+        // вставим блок в DOM
+        let place = document.getElementById("form"); // вставим блок в DOM
+        place.appendChild(newDiv);
+        newDiv.appendChild(newInput);
+    };
 
     switch (type) {
         case "text":
@@ -59,7 +120,7 @@ const makeInput = (value) => {
         case "technology":
             return getSelectInput(technologies, isRequired, multiple);
         case "checkbox":
-            return getCheckbox(isChecked);
+            return getCheckInput(type, isChecked)
     }
 };
 
@@ -82,18 +143,13 @@ function openDB(fileName) {
     const url = dbPath + fileName;
     doGetRequest(url)
         .then((data) => {
+            console.log(data);
             data.fields.forEach(field => {
-                makeMap(field).forEach((value, key) => {
-
-                    if (key === "label") {
-                        place.insertAdjacentHTML("beforeend", makeLabel(value))
-                    }
-                    if (key === "input") {
-                        place.insertAdjacentHTML("beforeend", makeInput(value))
-                    }
+                makeLabel(field.label);
+                makeInput(field.input);
                 })
             })
-        })
+
         .catch((error) => {
             console.log(error.message)
         })
