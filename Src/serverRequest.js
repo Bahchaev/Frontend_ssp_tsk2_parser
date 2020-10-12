@@ -51,12 +51,12 @@ const makeInput = (value) => {
         let newDiv = document.createElement("div"); // создадим контейнер блока
 
         // настроим блок
-        newInput.type = type;
-        newInput.required = isRequired;
-        newInput.placeholder = placeholder;
-        newInput.pattern = pattern;
-        newInput.accept = fileType;
-        newInput.multiple = isMultiple;
+        if (type) newInput.type = type;
+        if (isRequired) newInput.required = isRequired;
+        if (placeholder) newInput.placeholder = placeholder;
+        if (pattern) newInput.pattern = pattern;
+        if (fileType) newInput.accept = fileType;
+        if (isMultiple) newInput.multiple = isMultiple;
 
         // вставим блок в DOM
         let place = document.getElementById("form"); // вставим блок в DOM
@@ -70,8 +70,8 @@ const makeInput = (value) => {
         let newDiv = document.createElement("div"); // создадим контейнер блока
 
         // настроим блок
-        newSelect.required = isRequired;
-        newSelect.multiple = isMultiple;
+        if (isRequired) newSelect.required = isRequired;
+        if (isMultiple) newSelect.multiple = isMultiple;
 
 
         // вставим блок в DOM
@@ -93,8 +93,8 @@ const makeInput = (value) => {
         let newInput = document.createElement("input"); //создадим блок
 
         // настроим блок
-        newInput.type = type;
-        newInput.checked = isChecked;
+        if (type) newInput.type = type;
+        if (isChecked) newInput.checked = isChecked;
 
         // вставим блок в DOM
         let place = document.getElementById("form"); // вставим блок в DOM
@@ -120,18 +120,38 @@ const makeInput = (value) => {
             return makeCheckInput(type, isChecked)
     }
 };
-const makeButton = (value) => {
-    //простой блок Button
+const makeText = (value) => {
+// блок <text>
 
-    let newButton = document.createElement("button"); //создадим блок
+    let newText = document.createElement("text"); //создадим блок
+
 
     // настроим блок
-    newButton.innerText = value;
+    newText.innerHTML = value;
 
     // вставим блок в DOM
-    let place = document.getElementById("form"); // вставим блок в DOM
+    let place = document.getElementById("form");
 
-    place.appendChild(newButton);
+    place.appendChild(newText);
+};
+
+const makeLink = (value) => {
+    // блок <text>
+
+    let newLink = document.createElement("a"); //создадим блок
+
+
+    // настроим блок
+    newLink.innerHTML = value;
+
+    // вставим блок в DOM
+    let place = document.getElementById("form");
+
+    place.appendChild(newLink);
+};
+
+const addRefToLink = (value) => {
+
 };
 
 const createField = (key, value) => {
@@ -145,7 +165,24 @@ const createField = (key, value) => {
     }
 };
 const createButton = (key, value) => {
-    makeButton (value)
+    //простой блок Button
+
+    let newButton = document.createElement("button"); //создадим блок
+
+    // настроим блок
+    newButton.innerText = value;
+
+    // вставим блок в DOM
+    let place = document.getElementById("form"); // вставим блок в DOM
+
+    place.appendChild(newButton);
+};
+const createReference = (key, value) => {
+
+    if (key === "input") makeInput(value);
+    if (key === "text without ref") makeText(value);
+    if (key === "text") makeLink(value);
+    if (key === "ref") addRefToLink(value)
 };
 const createForm = (data) => {
 
@@ -164,10 +201,16 @@ const createForm = (data) => {
         makeMap(field).forEach((value, key, map) => {
             createField(key, value)
         })
-    })
+    });
 
-    data.buttons.forEach((field) => {
-        makeMap(field).forEach((value, key, map) => {
+    data.references.forEach((reference) => {
+        makeMap(reference).forEach((value, key, map) => {
+            createReference(key, value);
+        })
+    });
+
+    data.buttons.forEach((button) => {
+        makeMap(button).forEach((value, key, map) => {
             createButton(key, value)
         })
     })
@@ -194,10 +237,12 @@ function checkResponseStatus(response) {
         return Promise.reject(new Error(`Ошибка ${response.status}: ${response.statusText}`))
     }
 }
+
 function getJsonObject(response) {
     // получение JSON-объекта
     return response.json()
 }
+
 async function doGetRequest(url) {
     // GET-запрос
     return (
@@ -206,6 +251,7 @@ async function doGetRequest(url) {
             .then(getJsonObject) //если проверка прошла успешно - получаем JSON-объект ответа
     )
 }
+
 async function doPatchRequest(url, data) {
     // PATCH-запрос
     return (
@@ -220,6 +266,7 @@ async function doPatchRequest(url, data) {
             .then(getJsonObject)
     )
 }
+
 async function doPostRequest(url, data) {
     // POST-запрос
     return (
@@ -234,6 +281,7 @@ async function doPostRequest(url, data) {
             .then(getJsonObject)
     )
 }
+
 async function doDeleteRequest(url, item) {
     // DELETE-запрос
     return (
