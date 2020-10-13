@@ -12,7 +12,7 @@ const getPattern = (mask) => {
     return pattern
 };
 
-const makeLabel = (value) => {
+const makeLabel = (value, formClassName, i) => {
     // блок <label>
 
     let newLabel = document.createElement("label"); //создадим блок
@@ -20,25 +20,21 @@ const makeLabel = (value) => {
 
     // настроим блок
     newLabel.innerHTML = value;
+    newLabel.className = `label ${formClassName}__label-${i}`;
 
     // вставим блок в DOM
-    let place = document.getElementById("form");
+    let form = document.querySelector(`.${formClassName}`);
+    form.appendChild(newLabel);
 
-    place.appendChild(newLabel);
 };
-const makeInput = (value) => {
+
+const makeInput = (value, formClassName, i) => {
     // блок <input>
     let type = value.type ? value.type : undefined;
     let isRequired = value.required ? value.required : false;
     let placeholder = value.placeholder ? value.placeholder : "";
     let mask = value.mask ? value.mask : undefined;
     let pattern = mask ? getPattern(mask) : undefined;
-    // switch (mask) {
-    //      case "+7 (999) 99-99-999": pattern = "+7 ([0-9]{3}) [0-9]{2}-[0-9]{2}-[0-9]{3}"; break;
-    //      case "99-99 999999": pattern = "[0-9]{2}-[0-9]{2} [0-9]{6}"; break;
-    //      case "999-999": pattern = "[0-9]{3}-[0-9]{3}"; break;
-    //
-    // }
     let fileType = value.filetype ? "." + value.filetype.join(", .") : "";
     let technologies = value.technologies ? value.technologies : "";
     let isMultiple = value.multiple ? value.multiple : false;
@@ -48,9 +44,10 @@ const makeInput = (value) => {
         //простой блок Input
 
         let newInput = document.createElement("input"); //создадим блок
-        let newDiv = document.createElement("div"); // создадим контейнер блока
 
         // настроим блок
+        newInput.className = `input ${formClassName}__input-${i}`;
+        newInput.style.display = "block";
         if (type) newInput.type = type;
         if (isRequired) newInput.required = isRequired;
         if (placeholder) newInput.placeholder = placeholder;
@@ -59,47 +56,48 @@ const makeInput = (value) => {
         if (isMultiple) newInput.multiple = isMultiple;
 
         // вставим блок в DOM
-        let place = document.getElementById("form"); // вставим блок в DOM
-        place.appendChild(newDiv);
-        newDiv.appendChild(newInput);
+        let form = document.querySelector(`.${formClassName}`); // вставим блок в DOM
+        form.appendChild(newInput);
     };
     const makeSelectInput = (optionList, isRequired, isMultiple) => {
         // Блок <select>
 
         let newSelect = document.createElement("select"); //создадим блок
-        let newDiv = document.createElement("div"); // создадим контейнер блока
 
         // настроим блок
+        newSelect.className = `select ${formClassName}__select-${i}`;
+        newSelect.style.display = "block";;
         if (isRequired) newSelect.required = isRequired;
         if (isMultiple) newSelect.multiple = isMultiple;
 
 
         // вставим блок в DOM
-        let place = document.getElementById("form"); // вставим блок в DOM
-        place.appendChild(newDiv);
-        newDiv.appendChild(newSelect);
+        let form = document.querySelector(`.${formClassName}`); // вставим блок в DOM
+        form.appendChild(newSelect);
 
         // вставим варианты выбора <option> в <select>
         let newOption = null;
         optionList.forEach((option) => {
             newOption = document.createElement("option");
+            newOption.className = `option ${newSelect.className}__option-${i}`;
             newOption.innerHTML = option;
             newSelect.appendChild(newOption);
         });
     };
     const makeCheckInput = (type, isChecked) => {
-        //простой блок Input
+        //блок Checkbox
 
         let newInput = document.createElement("input"); //создадим блок
 
         // настроим блок
+        newInput.className = `checkbox ${formClassName}__checkbox-${i}`;
         if (type) newInput.type = type;
         if (isChecked) newInput.checked = isChecked;
 
         // вставим блок в DOM
-        let place = document.getElementById("form"); // вставим блок в DOM
+        let form = document.querySelector(`.${formClassName}`); // вставим блок в DOM
 
-        place.appendChild(newInput);
+        form.appendChild(newInput);
     };
 
     switch (type) {
@@ -154,13 +152,15 @@ const addRefToLink = (value) => {
 
 };
 
-const createField = (key, value) => {
+const createField = (key, value, formClassName, i) => {
+
+
     switch (key) {
         case "label":
-            makeLabel(value);
+            makeLabel(value, formClassName, i);
             break;
         case "input":
-            makeInput(value);
+            makeInput(value, formClassName, i);
             break;
     }
 };
@@ -193,15 +193,16 @@ const createForm = (data) => {
     }
 
     let form = document.createElement("form");
+    let formClassName = data.name;
+    form.className = "form " + formClassName;
     form.id = "form";
-    form.name = "data.name";
     document.body.append(form);
 
-    data.fields.forEach((field) => {
-        makeMap(field).forEach((value, key, map) => {
-            createField(key, value)
+    for (let i=0; i<data.fields.length;i++) {
+        makeMap(data.fields[i]).forEach((value, key) => {
+            createField(key, value, formClassName, i)
         })
-    });
+    }
 
     data.references.forEach((reference) => {
         makeMap(reference).forEach((value, key, map) => {
