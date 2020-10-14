@@ -12,7 +12,7 @@ const getPattern = (mask) => {
     return pattern
 };
 
-const makeLabel = (value, formClassName, i) => {
+const makeLabel = (value, formClassName, i, container) => {
     // блок <label>
 
     let newLabel = document.createElement("label"); //создадим блок
@@ -23,11 +23,10 @@ const makeLabel = (value, formClassName, i) => {
     newLabel.className = `label ${formClassName}__label-${i}`;
 
     // вставим блок в DOM
-    let form = document.querySelector(`.${formClassName}`);
-    form.appendChild(newLabel);
+    container.appendChild(newLabel);
 
 };
-const makeInput = (value, formClassName, i) => {
+const makeInput = (value, formClassName, i, container) => {
     // блок <input>
     let type = value.type ? value.type : undefined;
     let isRequired = value.required ? value.required : false;
@@ -38,6 +37,8 @@ const makeInput = (value, formClassName, i) => {
     let technologies = value.technologies ? value.technologies : "";
     let isMultiple = value.multiple ? value.multiple : false;
     let isChecked = value.checked ? value.checked : false;
+
+    //let container = document.querySelector(`.${formClassName}__container-${i}`);
 
     const makeRegularInput = (type, isRequired, placeholder) => {
         //простой блок Input
@@ -55,8 +56,7 @@ const makeInput = (value, formClassName, i) => {
         if (isMultiple) newInput.multiple = isMultiple;
 
         // вставим блок в DOM
-        let form = document.querySelector(`.${formClassName}`); // вставим блок в DOM
-        form.appendChild(newInput);
+        container.appendChild(newInput);
     };
     const makeSelectInput = (optionList, isRequired, isMultiple) => {
         // Блок <select>
@@ -71,8 +71,7 @@ const makeInput = (value, formClassName, i) => {
 
 
         // вставим блок в DOM
-        let form = document.querySelector(`.${formClassName}`); // вставим блок в DOM
-        form.appendChild(newSelect);
+        container.appendChild(newSelect);
 
         // вставим варианты выбора <option> в <select>
         let newOption = null;
@@ -94,9 +93,7 @@ const makeInput = (value, formClassName, i) => {
         if (isChecked) newInput.checked = isChecked;
 
         // вставим блок в DOM
-        let form = document.querySelector(`.${formClassName}`); // вставим блок в DOM
-
-        form.appendChild(newInput);
+        container.appendChild(newInput);
     };
 
     switch (type) {
@@ -117,20 +114,17 @@ const makeInput = (value, formClassName, i) => {
             return makeCheckInput(type, isChecked)
     }
 };
-const makeText = (value, formClassName, i) => {
+const makeText = (value, formClassName, i, container) => {
 // блок <text>
 
     let newText = document.createElement("span"); //создадим блок
-
 
     // настроим блок
     newText.innerText = value + " ";
     newText.className = `text ${formClassName}__text-${i}`;
 
     // вставим блок в DOM
-    let form = document.querySelector(`.${formClassName}`);
-
-    form.appendChild(newText);
+    container.appendChild(newText);
 };
 const makeLink = (value, formClassName, i) => {
     // блок <text>
@@ -151,18 +145,18 @@ const addRefToLink = (value, formClassName, i) => {
     link.href = value;
 };
 
-const createField = (key, value, formClassName, i) => {
+const createField = (key, value, formClassName, i, container) => {
 
     switch (key) {
         case "label":
-            makeLabel(value, formClassName, i);
+            makeLabel(value, formClassName, i, container);
             break;
         case "input":
-            makeInput(value, formClassName, i);
+            makeInput(value, formClassName, i, container);
             break;
     }
 };
-const createButton = (key, value, formClassName, i) => {
+const makeButton = (key, value, formClassName, i, container) => {
     //простой блок Button
 
     let newButton = document.createElement("button"); //создадим блок
@@ -172,14 +166,12 @@ const createButton = (key, value, formClassName, i) => {
     newButton.className = `button ${formClassName}__button-${i}`;
 
     // вставим блок в DOM
-    let form = document.querySelector(`.${formClassName}`);
-
-    form.appendChild(newButton);
+    container.appendChild(newButton);
 };
-const createReference = (key, value, formClassName, i) => {
+const createReference = (key, value, formClassName, i, container) => {
 
-    if (key === "input") makeInput(value, formClassName, i);
-    if (key === "text without ref") makeText(value, formClassName, i);
+    if (key === "input") makeInput(value, formClassName, i, container);
+    if (key === "text without ref") makeText(value, formClassName, i, container);
     if (key === "text") makeLink(value, formClassName, i);
     if (key === "ref") addRefToLink(value, formClassName, i)
 };
@@ -196,30 +188,51 @@ const createForm = (data) => {
     let formClassName = data.name;
     form.className = "form " + formClassName;
     form.id = "form";
-    form.style.cssText = `
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: flex-start;
-    `;
+
     document.body.append(form);
 
-
+    let newContainer = document.createElement('div');
+    newContainer.className = `container fields-container ${formClassName}__fields-container`;
+    form.appendChild(newContainer);
     for (let i = 0; i < data.fields.length; i++) {
+
+        let newContainer = document.createElement('div');
+        newContainer.className = `container ${formClassName}__field-container-${i}`;
+        let fieldsContainer = document.querySelector(`.${formClassName}__fields-container`);
+        fieldsContainer.appendChild(newContainer);
+
         makeMap(data.fields[i]).forEach((value, key) => {
-            createField(key, value, formClassName, i)
+            createField(key, value, formClassName, i, fieldsContainer)
         })
     }
 
+    newContainer = document.createElement('div');
+    newContainer.className = `container references-container ${formClassName}__references-container`;
+    form.appendChild(newContainer);
     for (let i = 0; i < data.references.length; i++) {
+
+        let newContainer = document.createElement('div');
+        newContainer.className = `container ${formClassName}__reference-container-${i}`;
+        let referencesContainer = document.querySelector(`.${formClassName}__references-container`);
+        referencesContainer.appendChild(newContainer);
+
         makeMap(data.references[i]).forEach((value, key) => {
-            createReference(key, value, formClassName, i)
+            createReference(key, value, formClassName, i, referencesContainer)
         })
     }
 
+    newContainer = document.createElement('div');
+    newContainer.className = `container buttons-container ${formClassName}__buttons-container`;
+    form.appendChild(newContainer);
     for (let i = 0; i < data.buttons.length; i++) {
+
+        let newContainer = document.createElement('div');
+        newContainer.className = `container button-container ${formClassName}__button-container-${i}`;
+        let buttonsContainer = document.querySelector(`.${formClassName}__buttons-container`);
+        buttonsContainer.appendChild(newContainer);
+
         makeMap(data.buttons[i]).forEach((value, key) => {
-            createButton(key, value, formClassName, i)
+            makeButton(key, value, formClassName, i, buttonsContainer)
         })
     }
 };
