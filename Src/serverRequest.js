@@ -19,7 +19,7 @@ const makeLabel = (value, formClassName, i) => {
 
 
     // настроим блок
-    newLabel.innerHTML = value;
+    newLabel.innerText = value;
     newLabel.className = `label ${formClassName}__label-${i}`;
 
     // вставим блок в DOM
@@ -27,7 +27,6 @@ const makeLabel = (value, formClassName, i) => {
     form.appendChild(newLabel);
 
 };
-
 const makeInput = (value, formClassName, i) => {
     // блок <input>
     let type = value.type ? value.type : undefined;
@@ -66,7 +65,7 @@ const makeInput = (value, formClassName, i) => {
 
         // настроим блок
         newSelect.className = `select ${formClassName}__select-${i}`;
-        newSelect.style.display = "block";;
+        newSelect.style.display = "block";
         if (isRequired) newSelect.required = isRequired;
         if (isMultiple) newSelect.multiple = isMultiple;
 
@@ -118,22 +117,22 @@ const makeInput = (value, formClassName, i) => {
             return makeCheckInput(type, isChecked)
     }
 };
-const makeText = (value) => {
+const makeText = (value, formClassName, i) => {
 // блок <text>
 
-    let newText = document.createElement("text"); //создадим блок
+    let newText = document.createElement("span"); //создадим блок
 
 
     // настроим блок
-    newText.innerHTML = value;
+    newText.innerText = value + " ";
+    newText.className = `text ${formClassName}__text-${i}`;
 
     // вставим блок в DOM
-    let place = document.getElementById("form");
+    let form = document.querySelector(`.${formClassName}`);
 
-    place.appendChild(newText);
+    form.appendChild(newText);
 };
-
-const makeLink = (value) => {
+const makeLink = (value, formClassName, i) => {
     // блок <text>
 
     let newLink = document.createElement("a"); //создадим блок
@@ -141,19 +140,18 @@ const makeLink = (value) => {
 
     // настроим блок
     newLink.innerHTML = value;
+    newLink.className = `link ${formClassName}__link-${i}`;
 
     // вставим блок в DOM
-    let place = document.getElementById("form");
-
-    place.appendChild(newLink);
+    let form = document.querySelector(`.${formClassName}__text-${i}`);
+    form.appendChild(newLink);
 };
-
-const addRefToLink = (value) => {
-
+const addRefToLink = (value, formClassName, i) => {
+    let link = document.querySelector(`.${formClassName}__link-${i}`);
+    link.href = value;
 };
 
 const createField = (key, value, formClassName, i) => {
-
 
     switch (key) {
         case "label":
@@ -164,26 +162,28 @@ const createField = (key, value, formClassName, i) => {
             break;
     }
 };
-const createButton = (key, value) => {
+const createButton = (key, value, formClassName, i) => {
     //простой блок Button
 
     let newButton = document.createElement("button"); //создадим блок
 
     // настроим блок
     newButton.innerText = value;
+    newButton.className = `button ${formClassName}__button-${i}`;
 
     // вставим блок в DOM
-    let place = document.getElementById("form"); // вставим блок в DOM
+    let form = document.querySelector(`.${formClassName}`);
 
-    place.appendChild(newButton);
+    form.appendChild(newButton);
 };
-const createReference = (key, value) => {
+const createReference = (key, value, formClassName, i) => {
 
-    if (key === "input") makeInput(value);
-    if (key === "text without ref") makeText(value);
-    if (key === "text") makeLink(value);
-    if (key === "ref") addRefToLink(value)
+    if (key === "input") makeInput(value, formClassName, i);
+    if (key === "text without ref") makeText(value, formClassName, i);
+    if (key === "text") makeLink(value, formClassName, i);
+    if (key === "ref") addRefToLink(value, formClassName, i)
 };
+
 const createForm = (data) => {
 
     //очистка от старой формы
@@ -196,25 +196,32 @@ const createForm = (data) => {
     let formClassName = data.name;
     form.className = "form " + formClassName;
     form.id = "form";
+    form.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+    `;
     document.body.append(form);
 
-    for (let i=0; i<data.fields.length;i++) {
+
+    for (let i = 0; i < data.fields.length; i++) {
         makeMap(data.fields[i]).forEach((value, key) => {
             createField(key, value, formClassName, i)
         })
     }
 
-    data.references.forEach((reference) => {
-        makeMap(reference).forEach((value, key, map) => {
-            createReference(key, value);
+    for (let i = 0; i < data.references.length; i++) {
+        makeMap(data.references[i]).forEach((value, key) => {
+            createReference(key, value, formClassName, i)
         })
-    });
+    }
 
-    data.buttons.forEach((button) => {
-        makeMap(button).forEach((value, key, map) => {
-            createButton(key, value)
+    for (let i = 0; i < data.buttons.length; i++) {
+        makeMap(data.buttons[i]).forEach((value, key) => {
+            createButton(key, value, formClassName, i)
         })
-    })
+    }
 };
 
 function openDB(fileName) {
