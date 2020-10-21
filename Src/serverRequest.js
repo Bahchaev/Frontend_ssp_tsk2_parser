@@ -1,44 +1,34 @@
-const dbPath = "../Src/jsonFiles/"; //путь до JSON файлов относительно index.html
-let place = document.getElementById("dataField");
+const makeLabel = (labelValue) => {
 
-const makeMap = (object) => {
-    return (new Map(Object.entries(object)))
-};
-const getPattern = (mask) => {
-    let pattern = "";
-    for (let i = 0; i < mask.length; i++) {
-        pattern = (mask[i] === "9") ? pattern + "[0-9]{1}" : pattern + mask[i]
-    }
-    return pattern
-};
-
-const makeLabel = (value, formClassName, i, container) => {
     // блок <label>
-
     let newLabel = document.createElement("label"); //создадим блок
-
-
-    // настроим блок
-    newLabel.innerText = value;
-    newLabel.className = `label ${formClassName}__label-${i}`;
-
-    // вставим блок в DOM
-    container.appendChild(newLabel);
-
+    newLabel.innerText = labelValue;
+    newLabel.style.cssText = `
+        margin-bot: 2px;        
+    `;
+    return newLabel;
 };
-const makeInput = (value, formClassName, i, container) => {
+const makeInput = (inputObj) => {
     // блок <input>
-    let type = value.type ? value.type : undefined;
-    let isRequired = value.required ? value.required : false;
-    let placeholder = value.placeholder ? value.placeholder : "";
-    let mask = value.mask ? value.mask : undefined;
-    let pattern = mask ? getPattern(mask) : undefined;
-    let fileType = value.filetype ? "." + value.filetype.join(", .") : "";
-    let technologies = value.technologies ? value.technologies : "";
-    let isMultiple = value.multiple ? value.multiple : false;
-    let isChecked = value.checked ? value.checked : false;
 
-    //let container = document.querySelector(`.${formClassName}__container-${i}`);
+    const getPattern = (mask) => {
+        let pattern = "";
+        for (let i = 0; i < mask.length; i++) {
+            pattern = (mask[i] === "9") ? pattern + "[0-9]{1}" : pattern + mask[i]
+        }
+        return pattern
+    };
+
+    let type = inputObj.type ? inputObj.type : undefined;
+    let isRequired = inputObj.required ? inputObj.required : false;
+    let placeholder = inputObj.placeholder ? inputObj.placeholder : "";
+    let mask = inputObj.mask ? inputObj.mask : undefined;
+    let pattern = mask ? getPattern(mask) : undefined;
+    let fileType = inputObj.filetype ? "." + inputObj.filetype.join(", .") : "";
+    let technologies = inputObj.technologies ? inputObj.technologies : "";
+    let isMultiple = inputObj.multiple ? inputObj.multiple : false;
+    let isChecked = inputObj.checked ? inputObj.checked : false;
+    let colors = inputObj.colors ? inputObj.colors : undefined;
 
     const makeRegularInput = (type, isRequired, placeholder) => {
         //простой блок Input
@@ -46,7 +36,7 @@ const makeInput = (value, formClassName, i, container) => {
         let newInput = document.createElement("input"); //создадим блок
 
         // настроим блок
-        newInput.className = `input ${formClassName}__input-${i}`;
+        newInput.className = `input`;
         newInput.style.display = "block";
         if (type) newInput.type = type;
         if (isRequired) newInput.required = isRequired;
@@ -56,7 +46,7 @@ const makeInput = (value, formClassName, i, container) => {
         if (isMultiple) newInput.multiple = isMultiple;
 
         // вставим блок в DOM
-        container.appendChild(newInput);
+        return newInput
     };
     const makeSelectInput = (optionList, isRequired, isMultiple) => {
         // Блок <select>
@@ -64,23 +54,21 @@ const makeInput = (value, formClassName, i, container) => {
         let newSelect = document.createElement("select"); //создадим блок
 
         // настроим блок
-        newSelect.className = `select ${formClassName}__select-${i}`;
+        newSelect.className = `select`;
         newSelect.style.display = "block";
         if (isRequired) newSelect.required = isRequired;
         if (isMultiple) newSelect.multiple = isMultiple;
-
-
-        // вставим блок в DOM
-        container.appendChild(newSelect);
 
         // вставим варианты выбора <option> в <select>
         let newOption = null;
         optionList.forEach((option) => {
             newOption = document.createElement("option");
-            newOption.className = `option ${newSelect.className}__option-${i}`;
+            newOption.className = `option`;
             newOption.innerHTML = option;
             newSelect.appendChild(newOption);
         });
+
+        return newSelect
     };
     const makeCheckInput = (type, isChecked) => {
         //блок Checkbox
@@ -88,12 +76,51 @@ const makeInput = (value, formClassName, i, container) => {
         let newInput = document.createElement("input"); //создадим блок
 
         // настроим блок
-        newInput.className = `checkbox ${formClassName}__checkbox-${i}`;
+        newInput.className = `checkbox`;
         if (type) newInput.type = type;
         if (isChecked) newInput.checked = isChecked;
 
         // вставим блок в DOM
-        container.appendChild(newInput);
+        return newInput;
+    };
+    const makeColorInput = (colorList) => {
+        // Блок <select>
+
+        let newSelect = document.createElement("select"); //создадим блок
+
+        // настроим блок
+        newSelect.className = `select`;
+        newSelect.style.display = "block";
+        newSelect.style.width = "100px";
+        if (isMultiple) newSelect.multiple = isMultiple;
+
+        newSelect.onchange = function () {
+            this.style.backgroundColor = this.options[this.selectedIndex].style.backgroundColor
+        };
+
+        // вставим варианты выбора <option> в <select>
+        let newOption = null;
+        colorList.forEach((option) => {
+            newOption = document.createElement("option");
+            newOption.className = `option`;
+            newOption.style.backgroundColor = option;
+            newSelect.appendChild(newOption);
+        });
+
+        return newSelect
+    };
+    const makeTextareaInput = (type, isRequired) => {
+        //блок textArea
+
+        let newTextArea = document.createElement("textarea"); //создадим блок
+
+        // настроим блок
+        newTextArea.className = `textarea`;
+        if (type) newTextArea.type = type;
+        if (isChecked) newTextArea.checked = isChecked;
+        newTextArea.rows = 5;
+
+        return newTextArea
     };
 
     switch (type) {
@@ -101,9 +128,7 @@ const makeInput = (value, formClassName, i, container) => {
         case "email":
         case "password":
         case "file":
-        case "textarea":
         case "date":
-        case "color":
             return makeRegularInput(type, isRequired, placeholder);
         case "number":
             if (mask) return makeRegularInput("tel", isRequired, mask);
@@ -111,69 +136,79 @@ const makeInput = (value, formClassName, i, container) => {
         case "technology":
             return makeSelectInput(technologies, isRequired, isMultiple);
         case "checkbox":
-            return makeCheckInput(type, isChecked)
+            return makeCheckInput(type, isChecked);
+        case "color":
+            return makeColorInput(colors, isMultiple);
+        case "textarea":
+            return makeTextareaInput(type, isRequired)
     }
 };
-const makeText = (value, formClassName, i, container) => {
-// блок <text>
 
-    let newText = document.createElement("span"); //создадим блок
-
-    // настроим блок
-    newText.innerText = value + " ";
-    newText.className = `text ${formClassName}__text-${i}`;
-
-    // вставим блок в DOM
-    container.appendChild(newText);
-};
-const makeLink = (value, formClassName, i) => {
-    // блок <text>
-
-    let newLink = document.createElement("a"); //создадим блок
-
-
-    // настроим блок
-    newLink.innerHTML = value;
-    newLink.className = `link ${formClassName}__link-${i}`;
-
-    // вставим блок в DOM
-    let form = document.querySelector(`.${formClassName}__text-${i}`);
-    form.appendChild(newLink);
-};
-const addRefToLink = (value, formClassName, i) => {
-    let link = document.querySelector(`.${formClassName}__link-${i}`);
-    link.href = value;
-};
-
-const createField = (key, value, formClassName, i, container) => {
-
-    switch (key) {
-        case "label":
-            makeLabel(value, formClassName, i, container);
-            break;
-        case "input":
-            makeInput(value, formClassName, i, container);
-            break;
+const createNewField = (FieldObj, i) => {
+    let label;
+    let input;
+    let container = document.createElement('div');
+    container.className = `container field__container field__container-${i}`;
+    if (FieldObj.label) {
+        label = makeLabel(FieldObj.label);
+        label.className = `label field__label field_label-${i}`
     }
+    if (FieldObj.input) {
+        input = makeInput(FieldObj.input);
+        input.className = `${input.className} field__${input.className} field__${input.className}-${i}`
+    }
+
+    if (label) {
+        if (input.type === "checkbox") {
+            label.insertAdjacentElement("afterbegin", input);
+        } else {
+            label.insertAdjacentElement("beforeend", input);
+            input.insertAdjacentHTML("beforebegin", "</br>")
+        }
+        container.appendChild(label)
+    } else container.appendChild(input);
+
+    return container
 };
-const makeButton = (key, value, formClassName, i, container) => {
-    //простой блок Button
+const createNewReference = (ReferenceObj, i) => {
+    let container = document.createElement('div');
+    container.className = `container reference__container reference__container-${i}`;
+    if (ReferenceObj.input) {
+        let input = makeInput(ReferenceObj.input);
+        input.className = `${input.className} reference__${input.className} reference__${input.className}-${i}`;
+        input.style.display = "inline-block";
+        container.appendChild(input)
+    } else {
+        let newText = document.createElement("span");
+        if (ReferenceObj["text without ref"]) {
+            newText.innerText = ReferenceObj["text without ref"] + " "
+        }
+        newText.className = `text reference__text reference__text-${i}`;
+        let newLink = document.createElement("a");
+        newLink.innerText = ReferenceObj.text;
+        newLink.href = ReferenceObj.ref;
+        newText.appendChild(newLink);
+        container.appendChild(newText)
+    }
+
+    return container
+};
+const createNewButton = (ButtonObj, i) => {
+    let container = document.createElement('div');
+    container.className = `container button__container button__container-${i}`;
 
     let newButton = document.createElement("button"); //создадим блок
-
     // настроим блок
-    newButton.innerText = value;
-    newButton.className = `button ${formClassName}__button-${i}`;
+    newButton.innerText = ButtonObj.text;
+    if (ButtonObj.text !== "Cancel") newButton.type = "submit";
+    else if (ButtonObj.text === "Cancel") {
+        newButton.type = "button";
+        newButton.onclick = clearForm;
+    }
+    newButton.className = `button buttons__button buttons__button-${i}`;
 
-    // вставим блок в DOM
     container.appendChild(newButton);
-};
-const createReference = (key, value, formClassName, i, container) => {
-
-    if (key === "input") makeInput(value, formClassName, i, container);
-    if (key === "text without ref") makeText(value, formClassName, i, container);
-    if (key === "text") makeLink(value, formClassName, i);
-    if (key === "ref") addRefToLink(value, formClassName, i)
+    return container
 };
 
 const createForm = (data) => {
@@ -181,7 +216,7 @@ const createForm = (data) => {
     //очистка от старой формы
     let place = document.getElementById("form");
     if (place) {
-        place.remove()
+        clearForm();
     }
 
     let form = document.createElement("form");
@@ -189,127 +224,48 @@ const createForm = (data) => {
     form.className = "form " + formClassName;
     form.id = "form";
 
+    if (data.fields) {
+        let newContainer = document.createElement('div');
+        newContainer.className = `container fields-container ${formClassName}__fields-container`;
+        form.appendChild(newContainer);
+        for (let i = 0; i < data.fields.length; i++) {
+            newContainer.appendChild(createNewField(data.fields[i], i))
+        }
+    }
+    if (data.references) {
+        let newContainer = document.createElement('div');
+        newContainer.className = `container references-container ${formClassName}__references-container`;
+        form.appendChild(newContainer);
+        for (let i = 0; i < data.references.length; i++) {
+            newContainer.appendChild(createNewReference(data.references[i], i))
+        }
+    }
+    if (data.buttons) {
+        let newContainer = document.createElement('div');
+        newContainer.className = `container buttons-container ${formClassName}__buttons-container`;
+        form.appendChild(newContainer);
+        for (let i = 0; i < data.buttons.length; i++) {
+            newContainer.appendChild(createNewButton(data.buttons[i], i))
+        }
+    }
+
     document.body.append(form);
-
-    let newContainer = document.createElement('div');
-    newContainer.className = `container fields-container ${formClassName}__fields-container`;
-    form.appendChild(newContainer);
-    for (let i = 0; i < data.fields.length; i++) {
-
-        let newContainer = document.createElement('div');
-        newContainer.className = `container ${formClassName}__field-container-${i}`;
-        let fieldsContainer = document.querySelector(`.${formClassName}__fields-container`);
-        fieldsContainer.appendChild(newContainer);
-
-        makeMap(data.fields[i]).forEach((value, key) => {
-            createField(key, value, formClassName, i, fieldsContainer)
-        })
-    }
-
-    newContainer = document.createElement('div');
-    newContainer.className = `container references-container ${formClassName}__references-container`;
-    form.appendChild(newContainer);
-    for (let i = 0; i < data.references.length; i++) {
-
-        let newContainer = document.createElement('div');
-        newContainer.className = `container ${formClassName}__reference-container-${i}`;
-        let referencesContainer = document.querySelector(`.${formClassName}__references-container`);
-        referencesContainer.appendChild(newContainer);
-
-        makeMap(data.references[i]).forEach((value, key) => {
-            createReference(key, value, formClassName, i, referencesContainer)
-        })
-    }
-
-    newContainer = document.createElement('div');
-    newContainer.className = `container buttons-container ${formClassName}__buttons-container`;
-    form.appendChild(newContainer);
-    for (let i = 0; i < data.buttons.length; i++) {
-
-        let newContainer = document.createElement('div');
-        newContainer.className = `container button-container ${formClassName}__button-container-${i}`;
-        let buttonsContainer = document.querySelector(`.${formClassName}__buttons-container`);
-        buttonsContainer.appendChild(newContainer);
-
-        makeMap(data.buttons[i]).forEach((value, key) => {
-            makeButton(key, value, formClassName, i, buttonsContainer)
-        })
-    }
+};
+const clearForm = () => {
+    let place = document.getElementById("form");
+    place.remove();
+    let fileLoader = document.getElementById("file");
+    fileLoader.value = ""
 };
 
-function openDB(fileName) {
-    // открыть JSON файл с именени fileName
-    const url = dbPath + fileName;
-    doGetRequest(url)
-        .then((data) => {
-            createForm(data)
-        })
-        .catch((error) => {
-            console.log(error.message)
-        })
-}
-
-// серверные запросы:
-function checkResponseStatus(response) {
-    //проверка статуса запроса
-    if (response.ok) { // если HTTP-статус в диапазоне 200-299
-        return Promise.resolve(response) //
-    } else {
-        return Promise.reject(new Error(`Ошибка ${response.status}: ${response.statusText}`))
-    }
-}
-
-function getJsonObject(response) {
-    // получение JSON-объекта
-    return response.json()
-}
-
-async function doGetRequest(url) {
-    // GET-запрос
-    return (
-        fetch(url)// отправляем запрос на сервер url и ждём ответа
-            .then(checkResponseStatus)// после получения ответа - делаем его проверку
-            .then(getJsonObject) //если проверка прошла успешно - получаем JSON-объект ответа
-    )
-}
-
-async function doPatchRequest(url, data) {
-    // PATCH-запрос
-    return (
-        fetch(url, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-            .then(checkResponseStatus)
-            .then(getJsonObject)
-    )
-}
-
-async function doPostRequest(url, data) {
-    // POST-запрос
-    return (
-        fetch(url, {
-            method: 'post',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-            .then(checkResponseStatus)
-            .then(getJsonObject)
-    )
-}
-
-async function doDeleteRequest(url, item) {
-    // DELETE-запрос
-    return (
-        fetch(url + '/' + item, {
-            method: 'DELETE'
-        })
-            .then(checkResponseStatus)
-            .then(getJsonObject)
-    )
-}
+let fileLoader = document.getElementById("file");
+fileLoader.addEventListener("change", function (event) {
+    let file = fileLoader.files[0];
+    let reader = new FileReader();
+    reader.readAsText(file);
+    let data;
+    reader.onload = function () {
+        data = reader.result;
+        createForm(JSON.parse(data))
+    };
+});
