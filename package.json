@@ -1,0 +1,25 @@
+{
+  "name": "frontend_ssp_tsk2_parser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "cleave.js": "^1.6.0",
+    "jquery": "^3.5.1",
+    "jquery-mask-plugin": "^1.14.16"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bahchaev/Frontend_ssp_tsk2_parser.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Bahchaev/Frontend_ssp_tsk2_parser/issues"
+  },
+  "homepage": "https://github.com/Bahchaev/Frontend_ssp_tsk2_parser#readme"
+}
