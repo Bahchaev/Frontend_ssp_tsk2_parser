@@ -85,31 +85,34 @@ const makeInput = (inputObj) => {
         // вставим блок в DOM
         return newInput;
     };
-    const makeColorInput = (colorList) => {
+    const makeColorInput = (colors) => {
         // Блок <select>
 
-        let newSelect = document.createElement("select"); //создадим блок
+        let newInput = document.createElement("input"); //создадим блок
 
         // настроим блок
-        newSelect.className = `select`;
-        newSelect.style.display = "block";
-        newSelect.style.width = "100px";
-        if (isMultiple) newSelect.multiple = isMultiple;
+        if (type) newInput.type = type;
+        newInput.setAttribute("list","colorList");
+        newInput.className = `input`;
+        newInput.style.display = "block";
+        newInput.style.width = "100px";
+        if (isMultiple) newInput.multiple = isMultiple;
 
-        newSelect.onchange = function () {
-            this.style.backgroundColor = this.options[this.selectedIndex].style.backgroundColor
-        };
-
-        // вставим варианты выбора <option> в <select>
+        // вставим варианты выбора <datalist> в <input>
+        let newDataList = document.createElement("datalist");
+        newDataList.id = "colorList";
         let newOption = null;
-        colorList.forEach((option) => {
+        colors.forEach((option) => {
             newOption = document.createElement("option");
             newOption.className = `option`;
+            newOption.value = option;
             newOption.style.backgroundColor = option;
-            newSelect.appendChild(newOption);
+            newDataList.appendChild(newOption);
         });
 
-        return newSelect
+        newInput.appendChild(newDataList);
+
+        return newInput
     };
     const makeTextareaInput = (type, isRequired) => {
         //блок textArea
@@ -250,7 +253,10 @@ const createForm = (data) => {
             newContainer.appendChild(createNewButton(data.buttons[i], i))
         }
     }
+
     document.body.append(form);
+
+    //$('.input').mask('00/00/0000');
 };
 const clearForm = () => {
     let place = document.getElementById("form");
